@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield | 3D SOC Intelligence Dashboard</title>
+    <!-- Leaflet CSS for 2D Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            color: #e2e8f0;
+            margin: 0;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #38bdf8;
+            margin: 0 0 6px 0;
+            font-size: 32px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 28px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        /* 3D Cyber Card Style */
+        .card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-top: 1px solid #38bdf8;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(56, 189, 248, 0.1);
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.8), 0 0 15px rgba(56, 189, 248, 0.2);
+            border-color: #38bdf8;
+        }
+
+        .full-width { grid-column: span 2; }
+        
+        .card h2 {
+            font-size: 15px;
+            color: #38bdf8;
+            margin-top: 0;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        label { display: block; margin-top: 12px; font-size: 12px; color: #94a3b8; font-weight: 600; }
+        
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            background: #020617;
+            border: 1px solid #334155;
+            color: #38bdf8;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+            font-family: monospace;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 11px;
+            margin-top: 14px;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+        }
+
+        .results {
+            margin-top: 14px;
+            background: #020617;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            max-height: 140px;
+            overflow-y: auto;
+            border: 1px solid #1e293b;
+            color: #cbd5e1;
+        }
+
+        .port-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #0f172a; }
+        .OPEN { color: #4ade80; font-weight: bold; text-shadow: 0 0 5px rgba(74, 222, 128, 0.4); }
+        .CLOSED { color: #f87171; }
+        .TIMEOUT { color: #fbbf24; }
+
+        #map {
+            height: 260px;
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 12px;
+            border: 1px solid #334155;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🛡️ CyberShield SOC</h1>
+    <div class="subtitle">Threat Intelligence & Network Diagnostics Dashboard</div>
+
+    <div class="dashboard-grid">
+        <!-- Module 1: Port Scanner -->
+        <div class="card">
+            <h2>🔍 Web Port Scanner</h2>
+            <label>Target Host (IP / Domain):</label>
+            <input type="text" id="scan-host" value="127.0.0.1">
+            <label>Ports (comma separated):</label>
+            <input type="text" id="scan-ports" value="21, 22, 80, 443, 3000, 8080">
+            <button onclick="startScan()">Execute Scan</button>
+            <div class="results" id="scan-results">System Ready.</div>
+        </div>
+
+        <!-- Module 2: Password Strength Analyzer -->
+        <div class="card">
+            <h2>🔑 Password Strength Inspector</h2>
+            <label>Test Password Complexity:</label>
+            <input type="password" id="pass-input" onkeyup="checkPasswordStrength()" placeholder="Type a password...">
+            <div class="results" id="pass-results">Enter password above to analyze strength...</div>
+        </div>
+
+        <!-- Module 3: HTTP Header Inspector -->
+        <div class="card full-width">
+            <h2>🌐 HTTP Header & Security Inspector</h2>
+            <label>Target URL:</label>
+            <input type="text" id="http-target" value="google.com">
+            <button onclick="startHttpCheck()">Inspect Host</button>
+            <div class="results" id="http-results">System Ready.</div>
+        </div>
+
+        <!-- Module 4: IP Geolocation & Live Map -->
+        <div class="card full-width">
+            <h2>🌍 IP Geolocation & Threat Map</h2>
+            <label>Target IP Address:</label>
+            <input type="text" id="ip-target" value="8.8.8.8">
+            <button onclick="startIPLookup()">Locate Target</button>
+            <div class="results" id="ip-results">Target intelligence will appear here...</div>
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS for Map -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize Map
+        let map = L.map('map').setView([20, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        let currentMarker;
+
+        // Port Scanner
+        async function startScan() {
+            const host = document.getElementById('scan-host').value;
+            const ports = document.getElementById('scan-ports').value;
+            const resDiv = document.getElementById('scan-results');
+            resDiv.innerHTML = 'Scanning ports...';
+            try {
+                const res = await fetch('/api/scan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ host, ports })
+                });
+                const data = await res.json();
+                resDiv.innerHTML = '';
+                data.results.forEach(r => {
+                    resDiv.innerHTML += `<div class="port-item"><span>Port ${r.port}</span> <span class="${r.status}">${r.status}</span></div>`;
+                });
+            } catch (e) {
+                resDiv.innerHTML = 'Error communicating with backend.';
+            }
+        }
+
+        // IP Geolocation & Map Placement
+        async function startIPLookup() {
+            const ip = document.getElementById('ip-target').value;
+            const resDiv = document.getElementById('ip-results');
+            resDiv.innerHTML = 'Locating IP...';
+            try {
+                const res = await fetch('/api/iplookup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip })
+                });
+                const data = await res.json();
+                if (data.status === 'fail') {
+                    resDiv.innerHTML = `Error: ${data.message}`;
+                    return;
+                }
+
+                resDiv.innerHTML = `
+                    <b>Country:</b> ${data.country || 'N/A'} | 
+                    <b>City:</b> ${data.city || 'N/A'}<br>
+                    <b>ISP:</b> ${data.isp || 'N/A'} | 
+                    <b>Coordinates:</b> ${data.lat}, ${data.lon}
+                `;
+
+                // Update Map View
+                map.setView([data.lat, data.lon], 9);
+                if (currentMarker) map.removeLayer(currentMarker);
+                currentMarker = L.marker([data.lat, data.lon]).addTo(map)
+                    .bindPopup(`<b>${ip}</b><br>${data.city}, ${data.country}`)
+                    .openPopup();
+            } catch (e) {
+                resDiv.innerHTML = 'Error retrieving IP data.';
+            }
+        }
+
+        // HTTP Header Inspection
+        async function startHttpCheck() {
+            const url = document.getElementById('http-target').value;
+            const resDiv = document.getElementById('http-results');
+            resDiv.innerHTML = 'Inspecting domain...';
+            try {
+                const res = await fetch('/api/httpcheck', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await res.json();
+                resDiv.innerHTML = `
+                    <b>Status Code:</b> ${data.status} (${data.message})<br>
+                    <b>HTTPS Encrypted:</b> ${data.secure ? 'YES' : 'NO'}<br>
+                    <b>Server Header:</b> ${data.server}<br>
+                    <b>HSTS Header:</b> ${data.strictTransport ? 'Enabled' : 'Missing'}<br>
+                    <b>X-Frame-Options:</b> ${data.xFrameOptions}
+                `;
+            } catch (e) {
+                resDiv.innerHTML = 'Error inspecting host.';
+            }
+        }
+
+        // Password Strength Logic
+        function checkPasswordStrength() {
+            const val = document.getElementById('pass-input').value;
+            const resDiv = document.getElementById('pass-results');
+            if (!val) { resDiv.innerHTML = 'Enter password above to analyze strength...'; return; }
+
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (val.length >= 12) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+
+            let strength = 'Weak 🔴';
+            if (score >= 4) strength = 'Strong 🟢';
+            else if (score >= 3) strength = 'Medium 🟡';
+
+            resDiv.innerHTML = `
+                <b>Length:</b> ${val.length} chars<br>
+                <b>Estimated Strength:</b> ${strength}
+            `;
+        }
+    </script>
+</body>
+</html>
+
