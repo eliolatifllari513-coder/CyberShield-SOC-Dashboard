@@ -1,15 +1,17 @@
 {
   "name": "web-port-scanner",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "CyberShield SOC Dashboard",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["security", "soc", "dashboard", "scanner"],
   "type": "commonjs",
   "dependencies": {
-    "cors": "^2.8.6",
-    "express": "^5.3.0"
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
   }
 }
+
